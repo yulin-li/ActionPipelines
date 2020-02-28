@@ -36,6 +36,6 @@ jobs:
         name: ${{ env.DOCKER_NAME }}
         username: ${{ env.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
-        dockerfile: ActionPipelines/Cognitive-Speech-TTS/MRCP/docker/ms-plugins/Dockerfile
-        context: ActionPipelines/Cognitive-Speech-TTS/MRCP
+        dockerfile: Cognitive-Speech-TTS/MRCP/docker/ms-plugins/Dockerfile
+        context: Cognitive-Speech-TTS/MRCP
         tags: "latest,${{ env.docker_tag }}"
