@@ -9,6 +9,7 @@ on:
       
 env:
   DOCKER_USERNAME: drhippo
+  DOCKER_NAME: drhippo/unimrcp_ms
 
 jobs:
   build:
@@ -26,15 +27,16 @@ jobs:
     - name: Build docker
       run: |
         cd Cognitive-Speech-TTS/MRCP
-        docker build --no-cache -t drhippo/unimrcp_ms:latest -f ./docker/ms-plugins/Dockerfile .
+        docker build --no-cache -t drhippo/${{ env.DOCKER_NAME }} -f ./docker/ms-plugins/Dockerfile .
         # get speech sdk version
-        version=$(curl https://aka.ms/csspeech/linuxbinary -i | grep Location | sed 's/^.*Linux-\(.*\)\.tar.*$/\1/g')
-        docker tag drhippo/unimrcp_ms:latest drhippo/unimrcp_ms:$version
-        echo "::set-env name=sdk_version::$version"
+        sdk_version=$(curl https://aka.ms/csspeech/linuxbinary -i | grep Location | sed 's/^.*Linux-\(.*\)\.tar.*$/\1/g')
+        docker_tag=unimrcp1.6.0-sdk$sdk_version
+        docker tag ${{ env.DOCKER_NAME }}:latest ${{ env.DOCKER_NAME }}:$docker_tag
+        echo "::set-env name=docker_tag::$docker_tag"
     - name: Publish to Registry
       uses: elgohr/Publish-Docker-Github-Action@master
       with:
-        name: myDocker/repository
+        name: ${{ env.DOCKER_NAME }}
         username: ${{ env.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
-        tags: "latest,${{ env.sdk_version }}"
+        tags: "latest,${{ env.docker_tag }}"
