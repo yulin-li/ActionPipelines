@@ -15,7 +15,7 @@ jobs:
       run: |
         a=1.1
         echo "::set-env name=some_env::$a"
-        echo ${{ some_env }}
+        echo ${{ env.some_env }}
     - name: show env
       run: |
-        echo ${{ some_env }}
+        echo ${{ env.some_env }}
