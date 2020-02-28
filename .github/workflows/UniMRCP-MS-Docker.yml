@@ -27,7 +27,7 @@ jobs:
     - name: Build docker
       run: |
         cd Cognitive-Speech-TTS/MRCP
-        docker build --no-cache -t drhippo/${{ env.DOCKER_NAME }} -f ./docker/ms-plugins/Dockerfile .
+        docker build --no-cache -t ${{ env.DOCKER_NAME }} -f ./docker/ms-plugins/Dockerfile .
         # get speech sdk version
         sdk_version=$(curl https://aka.ms/csspeech/linuxbinary -i | grep Location | sed 's/^.*Linux-\(.*\)\.tar.*$/\1/g')
         docker_tag=unimrcp1.6.0-sdk$sdk_version
