@@ -24,14 +24,11 @@ jobs:
     - name: Patch docker file
       run: |
         sed -i 's/unimrcp:latest/drhippo\/unimrcp:latest-devel/' Cognitive-Speech-TTS/MRCP/docker/ms-plugins/Dockerfile 
-    - name: Build docker
+    - name: Get docker tag
       run: |
-        cd Cognitive-Speech-TTS/MRCP
-        docker build --no-cache -t ${{ env.DOCKER_NAME }} -f ./docker/ms-plugins/Dockerfile .
         # get speech sdk version
         sdk_version=$(curl https://aka.ms/csspeech/linuxbinary -i | grep Location | sed 's/^.*Linux-\(.*\)\.tar.*$/\1/g')
         docker_tag=unimrcp1.6.0-sdk$sdk_version
-        docker tag ${{ env.DOCKER_NAME }}:latest ${{ env.DOCKER_NAME }}:$docker_tag
         echo "::set-env name=docker_tag::$docker_tag"
     - name: Publish to Registry
       uses: elgohr/Publish-Docker-Github-Action@master
@@ -39,4 +36,6 @@ jobs:
         name: ${{ env.DOCKER_NAME }}
         username: ${{ env.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
+        dockerfile: ActionPipelines/Cognitive-Speech-TTS/MRCP/docker/ms-plugins/Dockerfile
+        context: ActionPipelines/Cognitive-Speech-TTS/MRCP
         tags: "latest,${{ env.docker_tag }}"
