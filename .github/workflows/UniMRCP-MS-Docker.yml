@@ -3,7 +3,7 @@ name: UniMRCP-MS-Docker-CI
 on:
   push:
     paths: 
-      - './github/workflows/UniMRCP-MS-Docker.yml'
+      - '.github/workflows/UniMRCP-MS-Docker.yml'
   schedule:
     - cron: '0 0 * * 6'
 
