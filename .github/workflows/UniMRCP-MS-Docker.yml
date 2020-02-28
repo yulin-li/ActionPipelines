@@ -1,4 +1,4 @@
-name: UniMRCP-MS-Dcoker-CI
+name: UniMRCP-MS-Docker-CI
 
 on:
   push:
