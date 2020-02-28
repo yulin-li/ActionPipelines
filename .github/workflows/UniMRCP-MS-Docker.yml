@@ -16,7 +16,7 @@ jobs:
     - uses: actions/checkout@v2
     - name: Checkout Cognitive-Speech-TTS.git
       run: |
-        git checkout https://github.com/Azure-Samples/Cognitive-Speech-TTS.git
+        git clone https://github.com/Azure-Samples/Cognitive-Speech-TTS.git
     - name: Patch docker file
       run: |
         sed -i 's/unimrcp:latest/drhippo\\unimrcp:lastest-devel/' Cognitive-Speech-TTS/MRCP/docker/ms-plugins/Dockerfile 
