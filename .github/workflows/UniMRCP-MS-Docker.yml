@@ -22,7 +22,7 @@ jobs:
         git clone https://github.com/Azure-Samples/Cognitive-Speech-TTS.git
     - name: Patch docker file
       run: |
-        sed -i 's/unimrcp:latest/drhippo\/unimrcp:lastest-devel/' Cognitive-Speech-TTS/MRCP/docker/ms-plugins/Dockerfile 
+        sed -i 's/unimrcp:latest/drhippo\/unimrcp:latest-devel/' Cognitive-Speech-TTS/MRCP/docker/ms-plugins/Dockerfile 
     - name: Build docker
       run: |
         cd Cognitive-Speech-TTS/MRCP
