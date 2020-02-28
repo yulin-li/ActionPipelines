@@ -1,0 +1,37 @@
+name: UniMRCP-MS-Dcoker-CI
+
+on:
+  push:
+    paths: 
+      - './github/workflows/UniMRCP-MS-Dcoker.yml'
+  schedule:
+    - cron: '0 0 * * 6'
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Checkout Cognitive-Speech-TTS.git
+      run: |
+        git checkout git@github.com:Azure-Samples/Cognitive-Speech-TTS.git
+    - name: Patch docker file
+      run: |
+        sed -i 's/unimrcp:latest/drhippo\\unimrcp:lastest-devel/' Cognitive-Speech-TTS/MRCP/docker/ms-plugins/Dockerfile 
+    - name: Build docker
+      run: |
+        cd Cognitive-Speech-TTS/MRCP
+        docker build --no-cache -t drhippo/unimrcp_ms:latest -f ./ms-plugins/Dockerfile ..
+        # get speech sdk version
+        version=$(curl https://aka.ms/csspeech/linuxbinary -i | grep Location | sed 's/^.*Linux-\(.*\)\.tar.*$/\1/g')
+        docker tag drhippo/unimrcp_ms:latest drhippo/unimrcp_ms:$version
+        echo "::set-env name=sdk_version::$version"
+    - name: Publish to Registry
+      uses: elgohr/Publish-Docker-Github-Action@master
+      with:
+        name: myDocker/repository
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+        tags: "latest,${{ env.sdk_version }}"
