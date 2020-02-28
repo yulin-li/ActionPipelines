@@ -6,6 +6,9 @@ on:
       - '.github/workflows/UniMRCP-MS-Docker.yml'
   schedule:
     - cron: '0 0 * * 6'
+      
+env:
+  DOCKER_USERNAME: drhippo
 
 jobs:
   build:
@@ -32,6 +35,6 @@ jobs:
       uses: elgohr/Publish-Docker-Github-Action@master
       with:
         name: myDocker/repository
-        username: ${{ secrets.DOCKER_USERNAME }}
+        username: ${{ env.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
         tags: "latest,${{ env.sdk_version }}"
