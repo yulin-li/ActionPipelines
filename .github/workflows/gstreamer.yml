@@ -36,12 +36,12 @@ jobs:
 
       - name: Download GStreamer
         run: |
-          wget https://gstreamer.freedesktop.org/data/pkg/android/${{ env.GStreamerVersion }}/gstreamer-1.0-android-universal-${{ env.GStreamerVersion }}.tar.bz2
+          wget https://gstreamer.freedesktop.org/data/pkg/android/${{ env.GStreamerVersion }}/gstreamer-1.0-android-universal-${{ env.GStreamerVersion }}.tar.xz
 
       - name: Build
         run: |
           mkdir gstreamer_android
-          tar -xjf gstreamer-1.0-android-universal-${{ env.GStreamerVersion }}.tar.bz2 -C $(pwd)/gstreamer_android/
+          tar -xjf gstreamer-1.0-android-universal-${{ env.GStreamerVersion }}.tar.xz -C $(pwd)/gstreamer_android/
           export GSTREAMER_ROOT_ANDROID=$(pwd)/gstreamer_android
           mkdir gstreamer
           cp gstreamer-android/* gstreamer/
