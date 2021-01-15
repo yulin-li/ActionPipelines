@@ -41,10 +41,14 @@ jobs:
       - name: Build
         run: |
           mkdir gstreamer_android
-          tar -xjf gstreamer-1.0-android-universal-${{ env.GStreamerVersion }}.tar.xz -C $(pwd)/gstreamer_android/
+          tar -xf gstreamer-1.0-android-universal-${{ env.GStreamerVersion }}.tar.xz -C $(pwd)/gstreamer_android/
           export GSTREAMER_ROOT_ANDROID=$(pwd)/gstreamer_android
           mkdir gstreamer
           cp gstreamer-android/* gstreamer/
-          ndk-build -C $(pwd)/gstreamer "NDK_APPLICATION_MK=Application.mk" APP_ABI={{ matrix.abi }} NDK_LIBS_OUT=$(pwd)
+          ndk-build -C $(pwd)/gstreamer "NDK_APPLICATION_MK=Application.mk" APP_ABI=${{ matrix.abi }} NDK_LIBS_OUT=$(pwd)
 
-
+      - name: Publish
+        uses: actions/upload-artifact@v2
+        with:
+          name: AndroidGStreamer
+          path: ${{ matrix.abi }}/*.so
