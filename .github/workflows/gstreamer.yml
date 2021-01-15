@@ -1,0 +1,50 @@
+name: GStreamer Compile
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    paths:
+      - '.github/workflows/gstreamer.yml'
+      - 'gstreamer*'
+  schedule:
+    - cron: '0 0 * * 6'
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+env:
+  GStreamerVersion: 1.18.2
+
+jobs:
+  Android:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        abi: [arm64-v8a]
+
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Log CPU info
+        run: cat /proc/cpuinfo
+
+      - uses: nttld/setup-ndk@v1
+        id: setup-ndk
+        with:
+          ndk-version: r21d
+
+      - name: Download GStreamer
+        run: |
+          wget https://gstreamer.freedesktop.org/data/pkg/android/${{ env.GStreamerVersion }}/gstreamer-1.0-android-universal-${{ env.GStreamerVersion }}.tar.bz2
+
+      - name: Build
+        run: |
+          mkdir gstreamer_android
+          tar -xjf gstreamer-1.0-android-universal-${{ env.GStreamerVersion }}.tar.bz2 -C $(pwd)/gstreamer_android/
+          export GSTREAMER_ROOT_ANDROID=$(pwd)/gstreamer_android
+          mkdir gstreamer
+          cp gstreamer-android/* gstreamer/
+          ndk-build -C $(pwd)/gstreamer "NDK_APPLICATION_MK=Application.mk" APP_ABI={{ matrix.abi }} NDK_LIBS_OUT=$(pwd)
+
+
