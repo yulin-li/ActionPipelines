@@ -21,8 +21,10 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - uses: actions/checkout@v2
+      name: Checkout Azure-Samples/Cognitive-Speech-TTS
       with:
         repository: Azure-Samples/Cognitive-Speech-TTS
+        path: Cognitive-Speech-TTS
     - name: Log CPU info
       run: cat /proc/cpuinfo
     - name: Patch docker file
