@@ -6,6 +6,8 @@ on:
       - '.github/workflows/UniMRCP-MS-Docker.yml'
   schedule:
     - cron: '0 0 * * 6'
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
 
 env:
   DOCKER_USERNAME: drhippo
@@ -37,4 +39,4 @@ jobs:
         password: ${{ secrets.DOCKER_PASSWORD }}
         dockerfile: Cognitive-Speech-TTS/MRCP/docker/ms-plugins/Dockerfile
         context: Cognitive-Speech-TTS/MRCP
-        tags: "latest,$docker_tag"
+        tags: "latest,${{ env.docker_tag }}"
