@@ -49,6 +49,3 @@ jobs:
           ${{ env.DOCKER_NAME }}:latest
           ${{ env.DOCKER_NAME }}:${{ env.docker_tag }}
         push: ${{ github.ref == 'refs/heads/master' }}
-        cache-from: type=local,src=/tmp/.build-cache
-        cache-to: type=local,dest=/tmp/.build-cache
-
