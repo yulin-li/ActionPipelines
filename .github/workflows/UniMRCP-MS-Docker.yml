@@ -2,11 +2,13 @@ name: UniMRCP-MS-Docker-CI
 
 on:
   push:
-    paths: 
+    paths:
       - '.github/workflows/UniMRCP-MS-Docker.yml'
   schedule:
     - cron: '0 0 * * 6'
-      
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
 env:
   DOCKER_USERNAME: drhippo
   DOCKER_NAME: drhippo/unimrcp_ms
@@ -18,24 +20,40 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - name: Checkout Cognitive-Speech-TTS.git
-      run: |
-        git clone https://github.com/Azure-Samples/Cognitive-Speech-TTS.git
+    - uses: actions/checkout@v2
+      name: Checkout Azure-Samples/Cognitive-Speech-TTS
+      with:
+        repository: Azure-Samples/Cognitive-Speech-TTS
+        path: Cognitive-Speech-TTS
+    - name: Log CPU info
+      run: cat /proc/cpuinfo
     - name: Patch docker file
       run: |
-        sed -i 's/unimrcp:latest/drhippo\/unimrcp:latest-devel/' Cognitive-Speech-TTS/MRCP/docker/ms-plugins/Dockerfile 
+        sed -i 's/unimrcp:latest/drhippo\/unimrcp:latest-devel/' Cognitive-Speech-TTS/MRCP/docker/ms-plugins/Dockerfile
     - name: Get docker tag
       run: |
         # get speech sdk version
         sdk_version=$(curl https://aka.ms/csspeech/linuxbinary -i | grep Location | sed 's/^.*Linux-\(.*\)\.tar.*$/\1/g')
-        docker_tag=unimrcp1.6.0-sdk$sdk_version
-        echo "::set-env name=docker_tag::$docker_tag"
-    - name: Publish to Registry
-      uses: elgohr/Publish-Docker-Github-Action@master
+        echo "docker_tag=unimrcp1.6.0-sdk$sdk_version" >> $GITHUB_ENV
+    -
+      name: Set up Docker Buildx
+      id: buildx
+      uses: docker/setup-buildx-action@v1
+    -
+      name: Login to DockerHub
+      uses: docker/login-action@v1
       with:
-        name: ${{ env.DOCKER_NAME }}
         username: ${{ env.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
-        dockerfile: Cognitive-Speech-TTS/MRCP/docker/ms-plugins/Dockerfile
-        context: Cognitive-Speech-TTS/MRCP
-        tags: "latest,${{ env.docker_tag }}"
+    -
+      name: Build and push
+      uses: docker/build-push-action@v2
+      with:
+        context: Cognitive-Speech-TTS/MRCP/
+        file: Cognitive-Speech-TTS/MRCP/docker/ms-plugins/Dockerfile
+        tags: |
+          ${{ env.DOCKER_NAME }}:latest
+          ${{ env.DOCKER_NAME }}:${{ env.docker_tag }}
+        push: ${{ github.ref == 'refs/heads/master' }}
+        cache-from: type=local,src=/tmp/.buildx-cache
+        cache-to: type=local,dest=/tmp/.buildx-cache
