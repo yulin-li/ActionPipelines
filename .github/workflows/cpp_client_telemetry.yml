@@ -31,7 +31,6 @@ jobs:
         continue-on-error: true
         with:
           repository: microsoft/cpp_client_telemetry
-          submodules: 'recursive'
       - name: Log CPU info
         run: cat /proc/cpuinfo
 
@@ -91,8 +90,6 @@ jobs:
       - uses: actions/checkout@v2
         with:
           repository: microsoft/cpp_client_telemetry
-          token: ${{ secrets.PULL_TOKEN }}
-          submodules: 'recursive'
 
       - name: Patch
         run: |
