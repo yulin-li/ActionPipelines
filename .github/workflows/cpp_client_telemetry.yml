@@ -1,0 +1,121 @@
+# This is a basic workflow to help you get started with Actions
+
+name: 1DS C/C++ SDK
+
+# Controls when the action will run.
+on:
+  # Triggers the workflow on push or pull request events but only for the master branch
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  Linux:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        platform: [x64, arm64]
+        flavor: [debug, release]
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+        with:
+          repository: microsoft/cpp_client_telemetry
+          submodules: 'recursive'
+      - name: Log CPU info
+        run: cat /proc/cpuinfo
+
+      - name: Docker Setup QEMU
+        if: startsWith(${{ matrix.platform }}, 'arm')
+        uses: docker/setup-qemu-action@v1
+
+
+      # Runs a single command using the runners shell
+      - name: Run a one-line script
+        run: |
+          if [[ ${{ matrix.platform }} == x64 ]]; then
+            echo "docker_image=ubuntu:16.04" >> $GITHUB_ENV
+          else
+            echo "docker_image=drhippo/aarch64:16.04" >> $GITHUB_ENV
+          fi
+
+      # Runs a set of commands using the runners shell
+      - name: Build
+        continue-on-error: true
+        run: |
+          sudo docker run -i --workdir /cpp_client_telemetry -v $GITHUB_WORKSPACE:/cpp_client_telemetry $docker_image bash - <<"END"
+            set -e -o pipefail
+            apt-get update && apt-get install -y sudo ca-certificates
+            if [[ ${{ matrix.platform }} == x64 ]]; then
+              apt-get install -y python3-pip
+              python3 -m pip install cmake
+            fi
+            export MAKEFLAGS=-j$(grep -c ^processor /proc/cpuinfo)
+            ./build-tests.sh ${{ matrix.flavor }}
+          END
+      - name: Copy built libraries
+        run: |
+          flavor=${{ matrix.flavor }}
+          target=artifacts/${{ matrix.target }}/${flavor^}/
+          mkdir -p $target
+          cp out/lib/libmat.a $target
+          cp sqlite-autoconf-*/.libs/libsqlite3.a $target
+      - name: Publish
+        uses: actions/upload-artifact@v2
+        with:
+          name: Linux
+          path: artifacts/**/*.a
+
+  iOS:
+    runs-on: macos-10.15
+    strategy:
+      matrix:
+        target: [Device, Simulator]
+        flavor: [debug, release]
+    steps:
+      - name: Install modern bash
+        continue-on-error: true
+        run: |
+          export HOMEBREW_NO_INSTALL_CLEANUP=1
+          brew config && brew install bash
+      - uses: actions/checkout@v2
+        with:
+          repository: microsoft/cpp_client_telemetry
+          token: ${{ secrets.PULL_TOKEN }}
+          submodules: 'recursive'
+
+      - name: Patch
+        run: |
+          sed -i '.bak'  "s/^IOS_DEPLOYMENT_TARGET=[0-9\.]*$/IOS_DEPLOYMENT_TARGET=9.2/g" build-ios.sh
+          grep -C 5 ^IOS_DEPLOYMENT_TARGET build-ios.sh
+
+      - name: Build and test
+        run: |
+          export MAKEFLAGS=-j6
+          if [[ ${{ matrix.target }} == Simulator ]]; then
+            ./build-tests-ios.sh ${{ matrix.flavor }} 'iPhone 12 Pro'
+          else
+            ./build-ios.sh ${{ matrix.flavor }} arm64
+          fi
+      - name: Copy built libraries
+        run: |
+          flavor=${{ matrix.flavor }}
+          target=artifacts/${{ matrix.target }}/${flavor^}/
+          mkdir -p $target
+          cp out/lib/libmat.a $target
+          cp sqlite-autoconf-*/.libs/libsqlite3.a $target
+        shell: bash
+      - name: Publish
+        uses: actions/upload-artifact@v2
+        with:
+          name: iOS
+          path: artifacts/**/*.a
