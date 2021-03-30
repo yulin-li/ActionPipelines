@@ -32,7 +32,7 @@ jobs:
       - uses: nttld/setup-ndk@v1
         id: setup-ndk
         with:
-          ndk-version: r21e
+          ndk-version: r16b
 
       - name: Download GStreamer
         run: |
