@@ -13,7 +13,7 @@ on:
   workflow_dispatch:
 
 env:
-  GStreamerVersion: 1.18.2
+  GStreamerVersion: 1.18.4
 
 jobs:
   Android:
@@ -32,7 +32,7 @@ jobs:
       - uses: nttld/setup-ndk@v1
         id: setup-ndk
         with:
-          ndk-version: r21d
+          ndk-version: r21e
 
       - name: Download GStreamer
         run: |
@@ -49,8 +49,14 @@ jobs:
           cp gstreamer-android/* gstreamer/
           ndk-build -C $(pwd)/gstreamer "NDK_APPLICATION_MK=Application.mk" APP_ABI=${{ matrix.abi }} NDK_LIBS_OUT=$(pwd)
 
+      - name: Copy libc++_shared.so
+        run: |
+           cp ${{ steps.setup-ndk.outputs.ndk-path }}/sources/cxx-stl/llvm-libc++/libs/${{ matrix.abi }}/libc++_shared.so ${{ matrix.abi }}/
+
       - name: Publish
         uses: actions/upload-artifact@v2
         with:
           name: AndroidGStreamer
-          path: '*/libgstreamer_android.so'
+          path: |
+            */libgstreamer_android.so
+            */libc++_shared.so
