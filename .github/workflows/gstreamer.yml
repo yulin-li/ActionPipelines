@@ -58,5 +58,5 @@ jobs:
         with:
           name: AndroidGStreamer
           path: |
-            '*/libgstreamer_android.so'
-            '*/libc++_shared.so'
+            */libgstreamer_android.so
+            */libc++_shared.so
