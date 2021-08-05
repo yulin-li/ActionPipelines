@@ -36,9 +36,9 @@ jobs:
       - name: Set variables
         run: |
           if [[ ${{ matrix.platform }} == x64 ]]; then
-            echo "docker_image=ubuntu:16.04" >> $GITHUB_ENV
+            echo "docker_image=ubuntu:18.04" >> $GITHUB_ENV
           else
-            echo "docker_image=drhippo/aarch64:16.04" >> $GITHUB_ENV
+            echo "docker_image=drhippo/aarch64:18.04" >> $GITHUB_ENV
           fi
 
       - name: Build
