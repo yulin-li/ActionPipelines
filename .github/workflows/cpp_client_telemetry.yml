@@ -20,12 +20,18 @@ jobs:
       matrix:
         platform: [x64, arm64]
         flavor: [debug, release]
+        os_version: [16.04, 18.04]
 
     steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          path: main
       - uses: actions/checkout@v2
         continue-on-error: true
         with:
           repository: microsoft/cpp_client_telemetry
+          path: cpp_client_telemetry
       - name: Log CPU info
         run: cat /proc/cpuinfo
 
@@ -36,15 +42,25 @@ jobs:
       - name: Set variables
         run: |
           if [[ ${{ matrix.platform }} == x64 ]]; then
-            echo "docker_image=ubuntu:16.04" >> $GITHUB_ENV
+            echo "docker_image=ubuntu:${{ matrix.os_version }}" >> $GITHUB_ENV
           else
-            echo "docker_image=drhippo/aarch64:16.04" >> $GITHUB_ENV
+            echo "docker_image=drhippo/aarch64:${{ matrix.os_version }}" >> $GITHUB_ENV
+          fi
+
+      - name: Patch
+        run: |
+          cd cpp_client_telemetry
+          if [[ ${{ matrix.platform }} == arm64 ]]; then
+            git apply ../main/cpp_client_telemetry/arm64.patch
+          fi
+          if [[ ${{ matrix.os_version }} == 16.04 ]]; then
+            git apply ../main/cpp_client_telemetry/1604.patch
           fi
 
       - name: Build
         continue-on-error: true
         run: |
-          sudo docker run -i --workdir /cpp_client_telemetry -v $GITHUB_WORKSPACE:/cpp_client_telemetry $docker_image bash - <<"END"
+          sudo docker run -i --workdir /cpp_client_telemetry -v $GITHUB_WORKSPACE/cpp_client_telemetry:/cpp_client_telemetry $docker_image bash - <<"END"
             set -e -o pipefail
             apt-get update && apt-get install -y sudo ca-certificates
             if [[ ${{ matrix.platform }} == x64 ]]; then
@@ -58,10 +74,10 @@ jobs:
       - name: Copy built libraries
         run: |
           flavor=${{ matrix.flavor }}
-          target=artifacts/${{ matrix.platform }}/${flavor^}/
+          target=artifacts/${{ matrix.platform }}/${{ matrix.os_version }}/${flavor^}/
           mkdir -p $target
-          cp out/lib/libmat.a $target
-          cp sqlite-autoconf-*/.libs/libsqlite3.a $target
+          cp cpp_client_telemetry/out/lib/libmat.a $target
+          cp cpp_client_telemetry/sqlite-autoconf-*/.libs/libsqlite3.a $target
 
       - name: Publish
         uses: actions/upload-artifact@v2
