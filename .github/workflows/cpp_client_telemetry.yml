@@ -49,13 +49,11 @@ jobs:
 
       - name: Patch
         run: |
+          cd cpp_client_telemetry
           if [[ ${{ matrix.platform }} == arm64 ]]; then
-            cd cpp_client_telemetry
             git apply ../main/cpp_client_telemetry/arm64.patch
           fi
-
           if [[ ${{ matrix.os_version }} == 16.04 ]]; then
-            cd cpp_client_telemetry
             git apply ../main/cpp_client_telemetry/1604.patch
           fi
 
