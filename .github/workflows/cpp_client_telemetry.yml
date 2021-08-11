@@ -85,6 +85,63 @@ jobs:
           name: Linux
           path: artifacts/**/*.a
 
+  Linux-cc:
+    runs-on: ubuntu-18.04
+    strategy:
+      matrix:
+        platform: [arm64]
+        flavor: [Debug, Release]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          path: main
+      - uses: actions/checkout@v2
+        continue-on-error: true
+        with:
+          repository: microsoft/cpp_client_telemetry
+          path: cpp_client_telemetry
+      - name: Log CPU info
+        run: cat /proc/cpuinfo
+
+      - name: Install cross compile tool and dependencies
+        run : |
+          sudo apt-get update
+          sudo apt-get install --yes gcc-aarch64-linux-gnu g++-aarch64-linux-gnu gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf
+          sudo apt-get install --yes libcurl4-openssl-dev libsqlite3-dev zlib1g-dev
+
+      - name: Patch
+        run: |
+          cd cpp_client_telemetry
+          if [[ ${{ matrix.platform }} == arm64 ]]; then
+            git apply ../main/cpp_client_telemetry/arm64.patch
+          fi
+
+      - name: Build
+        run: |
+          cd cpp_client_telemetry
+          mkdir -p build
+          cd build
+          cmake -DCMAKE_PACKAGE_TYPE=tgz \
+                -DBUILD_UNIT_TESTS=OFF -DBUILD_FUNC_TESTS=OFF \
+                -DCMAKE_BUILD_TYPE=${{ matrix.flavor }} \
+                -DCMAK_BUILD_TOOLCHAIN=../../main/external/toolchains/aarch64-gnu.toolchain.cmake ..
+          cmake --build . -j $(nproc)
+
+      - name: Copy built libraries
+        run: |
+          flavor=${{ matrix.flavor }}
+          target=artifacts/${{ matrix.platform }}/${flavor^}/
+          mkdir -p $target
+          cp cpp_client_telemetry/build/lib/libmat.a $target
+
+      - name: Publish
+        uses: actions/upload-artifact@v2
+        with:
+          name: Linux-arm
+          path: artifacts/**/*.a
+
   iOS:
     runs-on: macos-10.15
     strategy:
