@@ -134,7 +134,7 @@ jobs:
           flavor=${{ matrix.flavor }}
           target=artifacts/${{ matrix.platform }}/${flavor^}/
           mkdir -p $target
-          cp cpp_client_telemetry/out/lib/libmat.a $target
+          cp cpp_client_telemetry/build/lib/libmat.a $target
 
       - name: Publish
         uses: actions/upload-artifact@v2
