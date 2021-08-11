@@ -105,10 +105,11 @@ jobs:
       - name: Log CPU info
         run: cat /proc/cpuinfo
 
-      - name: Install cross compile tool
+      - name: Install cross compile tool and dependencies
         run : |
           sudo apt-get update
           sudo apt-get install --yes gcc-aarch64-linux-gnu g++-aarch64-linux-gnu gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf
+          sudo apt-get install --yes libcurl4-openssl-dev libsqlite3-dev zlib1g-dev
 
       - name: Patch
         run: |
@@ -118,7 +119,6 @@ jobs:
           fi
 
       - name: Build
-        continue-on-error: true
         run: |
           cd cpp_client_telemetry
           mkdir -p build
